@@ -22,17 +22,18 @@ client.connect(() => {
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithEmail = function(email) {
-  let user;
-  for (const userId in users) {
-    user = users[userId];
-    if (user.email.toLowerCase() === email.toLowerCase()) {
-      break;
-    } else {
-      user = null;
-    }
-  }
-  return Promise.resolve(user);
-}
+  const soughtEmail = email.toLowerCase();
+  const values = [soughtEmail];
+  const queryString = `SELECT * FROM users WHERE email = $1;`;
+  return client.query(queryString, values)
+    .then(res => {
+      if (res.rows.length === 0) {
+        return null;
+      } else {
+        return res.rows[0];
+      }
+    });
+};
 exports.getUserWithEmail = getUserWithEmail;
 
 /**
@@ -41,7 +42,16 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithId = function(id) {
-  return Promise.resolve(users[id]);
+  const values = [id];
+  const queryString = `SELECT * FROM users WHERE id = $1;`;
+  return client.query(queryString, values)
+    .then(res => {
+      if (res.rows.length === 0) {
+        return null;
+      } else {
+        return res.rows[0];
+      }
+    });
 }
 exports.getUserWithId = getUserWithId;
 
