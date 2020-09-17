@@ -19,7 +19,7 @@ module.exports = function(router, database) {
     .then(reservations => res.send({reservations}))
     .catch(e => {
       console.error(e);
-      res.send(e)
+      res.send(e);
     });
   });
 
