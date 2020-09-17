@@ -1,18 +1,17 @@
 const pg = require('pg')
-const Client = pg.Client;
+const Pool = pg.Pool;
 const config = {
+  user: 'development',
+  password: 'development',
   database: 'lightbnb',
   host: 'localhost',
   port: 5432
 }
-const client = new Client(config);
+const client = new Pool(config);
 
 client.connect(() => {
   console.log(`Successfully connected to the database!`);
 });
-
-// const properties = require('./json/properties.json');
-// const users = require('./json/users.json');
 
 /// Users
 
@@ -32,6 +31,9 @@ const getUserWithEmail = function(email) {
       } else {
         return res.rows[0];
       }
+    })
+    .catch(e => {
+      return e;
     });
 };
 exports.getUserWithEmail = getUserWithEmail;
@@ -62,10 +64,17 @@ exports.getUserWithId = getUserWithId;
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser = function(user) {
-  const userId = Object.keys(users).length + 1;
-  user.id = userId;
-  users[userId] = user;
-  return Promise.resolve(user);
+  const {name, email, password} = user;
+  const values = [name, email, password];
+  const queryString = `
+    INSERT INTO users (name, email, password)
+    VALUES ($1, $2, $3)
+    RETURNING*;
+  `;
+  return client.query(queryString, values)
+  .then(res => {
+    return res.rows[0];
+  });
 }
 exports.addUser = addUser;
 
