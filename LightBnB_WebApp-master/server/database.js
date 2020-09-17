@@ -1,5 +1,18 @@
-const properties = require('./json/properties.json');
-const users = require('./json/users.json');
+const pg = require('pg')
+const Client = pg.Client;
+const config = {
+  database: 'lightbnb',
+  host: 'localhost',
+  port: 5432
+}
+const client = new Client(config);
+
+client.connect(() => {
+  console.log(`Successfully connected to the database!`);
+});
+
+// const properties = require('./json/properties.json');
+// const users = require('./json/users.json');
 
 /// Users
 
@@ -38,7 +51,7 @@ exports.getUserWithId = getUserWithId;
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser =  function(user) {
+const addUser = function(user) {
   const userId = Object.keys(users).length + 1;
   user.id = userId;
   users[userId] = user;
@@ -61,17 +74,17 @@ exports.getAllReservations = getAllReservations;
 /// Properties
 
 /**
+ * 
  * Get all properties.
  * @param {{}} options An object containing query options.
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function(options, limit = 10) {
-  const limitedProperties = {};
-  for (let i = 1; i <= limit; i++) {
-    limitedProperties[i] = properties[i];
-  }
-  return Promise.resolve(limitedProperties);
+  const queryString = `SELECT * FROM properties LIMIT $1;`;
+  const values = [limit];
+  return client.query(queryString, values)
+    .then(res => res.rows);
 }
 exports.getAllProperties = getAllProperties;
 
