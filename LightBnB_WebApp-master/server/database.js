@@ -139,13 +139,15 @@ const getAllProperties = function(options, limit = 10) {
     values.push(options.maximum_price_per_night);
     queryString += `AND cost_per_night/100 < $${values.length} `
   }
+  queryString += `GROUP BY properties.id `;
+  if (options.minimum_rating) {
+    values.push(options.minimum_rating);
+    queryString += `HAVING AVG(property_reviews.rating) >= $${values.length} `
+  }
+  queryString += `ORDER BY cost_per_night `
   values.push(limit);
-  queryString += `
-  GROUP BY properties.id
-  ORDER BY cost_per_night
-  LIMIT $${values.length};
-  `;
-
+  queryString += `LIMIT $${values.length};`;
+  
   console.log(queryString, values);
 
   return client.query(queryString, values)
